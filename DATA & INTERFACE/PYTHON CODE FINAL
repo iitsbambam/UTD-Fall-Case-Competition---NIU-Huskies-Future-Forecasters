@@ -1,0 +1,241 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Case Study Interface                                                        #
+#                                                                             #
+# File Name: Case Study Interface.py                                          #
+# By: Kamila Tkacz, Steve Dziamentsyeu, Daniel Major, Brandon Curtin          #
+# Description: A dynamic report for the HELP underwriting team.               #
+#       Main features include:                                                #
+#              ** Filtering of the hurricane data sets provided in Excel      #
+#              ** Multiple paths (specific per year/location & years back)    #
+#              ** Console-based IO                                            #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Imports
+import pandas as pd
+import re
+
+# Configure Pandas
+pd.set_option('display.max_columns', None)
+
+# File path
+file_path = 'CAS Data Visualization Case Dataset - NIUHFF.xlsx'
+
+# Sheet names
+HurrOne = 'Historical Hurricane 1'
+HurrTwo = 'Historical Hurricane 2'
+MaxWind = 'Max Wind Speeds'
+PremLoc = 'Prem By Location'
+PremTIV = 'Prem per $100 TIV By Location'
+TIV_Loc = 'TIV By Location'
+
+# Columns used
+colsHurrOne = 'E:T'
+colsHurrTwo = 'F:Q'
+colsPrem    = 'A:AK'
+colsWindUnq = 'A:F'
+colsMaxWind = 'I:K'
+
+PREM_MIN_VAL = 1985
+CURRENT_YEAR = 2024
+
+# Prompted at end of program
+user_exit = ''
+
+# Cleanup for latitude and longitude whenever it's used
+def clean_latitude_longitude():
+    latitude = lat.lstrip('-')
+    longitude = lon.lstrip('-')
+    latitude = re.sub('[.]', '', latitude)
+    longitude = re.sub('[.]', '', longitude)
+
+    return latitude, longitude
+
+while not user_exit in ['Y', 'y']:
+    # Ask UW which mode they want (back-year or specific)
+    user_path = input('Which way would you like to see the data?:\n'
+                      '     1) Specific to year and location\n'
+                      '     2) \"X\" years back from present year\n'
+                      'Selection: ')
+
+    while user_path not in ['1', '2']:
+        user_path = input('Your input does not match a selection; please try again.\n\n'
+                          ''
+                          'Selection: ')
+
+    if user_path == '1':
+        # Ask UW to select what sheet they want to use
+        menu_select = input("Please select:\n"
+                          "1) for Hurricane History Data Set 1\n"
+                          "2) for Hurricane History Data Set 2\n"
+                          "3) for Premiums\n\n"
+                          "Selection: ")
+
+
+        # Error catching for selection menu
+        while menu_select not in ['1', '2', '3']:
+            menu_select = input('Your input does not match a data set; please try again.\n\n'
+                              ''
+                              'Selection: ')
+
+        if menu_select == '1':
+            # Read the useful columns from Data Set
+            dfHurrOne = pd.read_excel(file_path, HurrOne, usecols = colsHurrOne, skiprows = 1)
+            dfWindUnq = pd.read_excel(file_path, MaxWind, usecols = colsWindUnq, skiprows = 2)
+            dfMaxWind = pd.read_excel(file_path, MaxWind, usecols = colsMaxWind, skiprows = 2)
+
+            # Prompt UW to input year & location to determine all hurricanes associated
+            year = input('Enter Year: ')
+            lat  = input('Enter Latitude: ')
+            lon  = input('Enter Longitude: ')
+
+            # Fix the strings because .isnumeric() is unforgiving
+            lat_check, lon_check = clean_latitude_longitude()
+
+            # Check to see if they input a number for any of these, if not reprompt
+            while ((not year.isnumeric()) or (not lat_check.isnumeric())
+                                          or (not lon_check.isnumeric())):
+                print('One of these inputs are not numeric; please ensure this and try again.')
+
+                year = input('Enter Year: ')
+                lat  = input('Enter Latitude: ')
+                lon  = input('Enter Longitude: ')
+
+                lat_check, lon_check = clean_latitude_longitude()
+
+            # Filter data set
+            filterHurrOne = dfHurrOne[(dfHurrOne['Latitude'] == float(lat)) &
+                                      (dfHurrOne['Longitude'] == float(lon)) &
+                                      (dfHurrOne['Year'] == int(year))]
+            filterWindUnq = dfWindUnq[(dfWindUnq['Hurricane Year'] == int(year))]
+            filterMaxWind = dfMaxWind[(dfMaxWind['Year'] == int(year))]
+
+            # Display all matches out to the console
+            print(f'\nHistorical Data:\n{filterHurrOne}')
+            print(f'\nMax Wind in Year {year}:\n{filterWindUnq}')
+            print(f'\nMax Wind in Year {year}:\n{filterMaxWind}')
+        elif menu_select == '2':
+            # Grab data for Hurricane Data Set 2
+            dfHurrTwo = pd.read_excel(file_path, HurrTwo, usecols = colsHurrTwo, skiprows = 2)
+            dfWindUnq = pd.read_excel(file_path, MaxWind, usecols = colsWindUnq, skiprows = 2)
+            dfMaxWind = pd.read_excel(file_path, MaxWind, usecols = colsMaxWind, skiprows = 2)
+
+            # Prompt UW to input year & location to determine all hurricanes associated
+            year = input('Enter Year: ')
+            lat  = input('Enter Latitude: ')
+            lon  = input('Enter Longitude: ')
+
+            # Fix the strings because .isnumeric() is unforgiving
+            lat_check, lon_check = clean_latitude_longitude()
+
+            # Check to see if they input a number for any of these, if not reprompt
+            while ((not year.isnumeric()) or (not lat_check.isnumeric())
+                                          or (not lon_check.isnumeric())):
+                print('One of these inputs are not numeric; please ensure this and try again.')
+
+                year = input('Enter Year: ')
+                lat  = input('Enter Latitude: ')
+                lon  = input('Enter Longitude: ')
+
+                lat_check, lon_check = clean_latitude_longitude()
+
+            # Filter data set
+            filterHurrTwo = dfHurrTwo[(dfHurrTwo['Latitude'] == float(lat)) &
+                                      (dfHurrTwo['Longitude'] == float(lon)) &
+                                      (dfHurrTwo['Year'] == int(year))]
+            filterWindUnq = dfWindUnq[(dfWindUnq['Hurricane Year'] == int(year))]
+            filterMaxWind = dfMaxWind[(dfMaxWind['Year'] == int(year))]
+
+            # Display all matches out to the console
+            print(f'\nHistorical Data:\n{filterHurrTwo}')
+            print(f'\nMax Wind in Year {year}:\n{filterWindUnq}')
+            print(f'\nMax Wind in Year {year}:\n{filterMaxWind}')
+        elif menu_select == '3':
+            # Grab data for Premiums
+            dfPremLoc = pd.read_excel(file_path, PremLoc, usecols = colsPrem, skiprows = 2)
+            dfPremTIV = pd.read_excel(file_path, PremTIV, usecols = colsPrem, skiprows = 2)
+            dfTIV_Loc = pd.read_excel(file_path, TIV_Loc, usecols = colsPrem, skiprows = 2)
+
+            year = input('Enter Year: ')
+
+            # Check to see if they input a number for any of these, if not reprompt
+            while not year.isnumeric():
+                print('Year is not numeric; please ensure this and try again.')
+
+                year = input('Enter Year: ')
+
+            # Filter data set
+            filterPremLoc = dfPremLoc[(dfPremLoc['Sum of Premium'] == int(year))]
+            filterPremTIV = dfPremTIV[(dfPremTIV['Sum of Premium per $100 TIV'] == int(year))]
+            filterTIV_Loc = dfTIV_Loc[(dfTIV_Loc['Sum of Total Insured Value'] == int(year))]
+
+            # Display all matches out to the console
+            print(f'\nPremiums by location in Year {year}:\n{filterPremLoc}')
+            print(f'\nPremiums per $100 TIV in Year {year}:\n{filterPremTIV}')
+            print(f'\nSum of TIV in Year {year}: \n{filterTIV_Loc}')
+    # END PATH 1
+
+    # USER PATH 2
+    elif user_path == '2':
+        # Ask UW to select what sheet they want to use
+        menu_select = input("Please select:\n"
+                            "1) for Hurricane History Data Set 1\n"
+                            "2) for Hurricane History Data Set 2\n\n"
+                            "Selection: ")
+
+        # Error catching for selection menu
+        while menu_select not in ['1', '2']:
+            menu_select = input('Your input does not match a data set; please try again.\n\n'
+                                ''
+                                'Selection: ')
+
+        years_back = input('How many years back of data would you like to see?:\n\n'
+                           ''
+                           'Selection: ')
+
+        while not years_back.isnumeric():
+            years_back = input('You did not input a numerical value; Please try again:\n\n'
+                               ''
+                               'Selection: ')
+
+        year_min = CURRENT_YEAR - int(years_back)
+
+        if menu_select == '1':
+            # Read the useful columns from Data Set
+            dfHurrOne = pd.read_excel(file_path, HurrOne, usecols=colsHurrOne, skiprows=1)
+            dfWindUnq = pd.read_excel(file_path, MaxWind, usecols=colsWindUnq, skiprows=2)
+            dfMaxWind = pd.read_excel(file_path, MaxWind, usecols=colsMaxWind, skiprows=2)
+
+            # Filter data set
+            filterHurrOne = dfHurrOne[dfHurrOne['Year'] >= int(year_min)]
+            filterWindUnq = dfWindUnq[(dfWindUnq['Hurricane Year'] >= int(year_min))]
+            filterMaxWind = dfMaxWind[(dfMaxWind['Year'] >= int(year_min))]
+
+            # Display all matches out to the console
+            print(f'\nHistorical Data from {year_min} to {CURRENT_YEAR}:\n{filterHurrOne}')
+            print(f'\nMax Wind Speed from {year_min} to {CURRENT_YEAR}:\n{filterWindUnq}')
+            print(f'\nMax Wind Speed from {year_min} to {CURRENT_YEAR}:\n{filterMaxWind}')
+        elif menu_select == '2':
+            # Read the useful columns from Data Set
+            dfHurrTwo = pd.read_excel(file_path, HurrOne, usecols=colsHurrOne, skiprows=1)
+            dfWindUnq = pd.read_excel(file_path, MaxWind, usecols=colsWindUnq, skiprows=2)
+            dfMaxWind = pd.read_excel(file_path, MaxWind, usecols=colsMaxWind, skiprows=2)
+
+            # Filter data set
+            filterHurrTwo = dfHurrTwo[dfHurrTwo['Year'] >= int(year_min)]
+            filterWindUnq = dfWindUnq[(dfWindUnq['Hurricane Year'] >= int(year_min))]
+            filterMaxWind = dfMaxWind[(dfMaxWind['Year'] >= int(year_min))]
+
+            # Display all matches out to the console
+            print(f'\nHistorical Data from {year_min} to {CURRENT_YEAR}:\n{filterHurrTwo}')
+            print(f'\nMax Wind Speed from {year_min} to {CURRENT_YEAR}:\n{filterWindUnq}')
+            print(f'\nMax Wind Speed from {year_min} to {CURRENT_YEAR}:\n{filterMaxWind}')
+
+    # Prompt user to exit program
+    user_exit = input("\nWould you like to quit? (Y/N): ")
+
+    # Program exit error handling
+    while not user_exit in ['Y', 'N', 'y', 'n']:
+        user_exit = input('(Y/N): ')
+
+# Thank you for the experience!
+print('\n* Thank you for using the Hurricane Data Set Filter! *')
